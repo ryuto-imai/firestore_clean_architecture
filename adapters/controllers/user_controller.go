@@ -9,34 +9,50 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type User interface {
+	AddUser(ctx context.Context) func(c echo.Context) error
+	GetUsers(ctx context.Context) func(c echo.Context) error
+}
+
+type OutputFactory func(echo.Context) ports.UserOutputPort
+type InputFactory func(ports.UserOutputPort, ports.UserRepository) ports.UserInputPort
+type RepositoryFactory func(*firestore.Client) ports.UserRepository
+
 type UserController struct {
-	OutputFactory     func(ctx echo.Context) ports.UserOutputPort
-	InputFactory      func(outputPort ports.UserOutputPort, repository ports.UserRepository) ports.UserInputPort
-	RepositoryFactory func(client *firestore.Client) ports.UserRepository
-	Client            *firestore.Client
+	outputFactory     OutputFactory
+	inputFactory      InputFactory
+	repositoryFactory RepositoryFactory
+	client            *firestore.Client
 }
 
-func (u *UserController) AddUser(c echo.Context) error {
-	user := new(entities.User)
-	if err := c.Bind(user); err != nil {
-		return err
+func NewUserController(outputFactory OutputFactory, inputFactory InputFactory, repositoryFactory RepositoryFactory, client *firestore.Client) User {
+	return &UserController{
+		outputFactory:     outputFactory,
+		inputFactory:      inputFactory,
+		repositoryFactory: repositoryFactory,
+		client:            client,
 	}
-
-	inputPort := u.newInputPort(c)
-
-	ctx := context.Background()
-	return inputPort.AddUser(ctx, user)
 }
 
-func (u *UserController) GetUsers(c echo.Context) error {
-	inputPort := u.newInputPort(c)
+func (u *UserController) AddUser(ctx context.Context) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		user := new(entities.User)
+		if err := c.Bind(user); err != nil {
+			return err
+		}
 
-	ctx := context.Background()
-	return inputPort.GetUsers(ctx)
+		return u.newInputPort(c).AddUser(ctx, user)
+	}
+}
+
+func (u *UserController) GetUsers(ctx context.Context) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return u.newInputPort(c).GetUsers(ctx)
+	}
 }
 
 func (u *UserController) newInputPort(c echo.Context) ports.UserInputPort {
-	outputPort := u.OutputFactory(c)
-	repository := u.RepositoryFactory(u.Client)
-	return u.InputFactory(outputPort, repository)
+	outputPort := u.outputFactory(c)
+	repository := u.repositoryFactory(u.client)
+	return u.inputFactory(outputPort, repository)
 }

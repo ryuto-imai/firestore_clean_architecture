@@ -1,7 +1,18 @@
 package main
 
-import "firestore_clean/drivers"
+import (
+	"context"
+	"firestore_clean/drivers"
+	"fmt"
+	"os"
+)
 
 func main() {
-	drivers.ServeUsers(":8000")
+	ctx := context.Background()
+	userDriver, err := drivers.InitializeUserDriver(ctx)
+	if err != nil {
+		fmt.Printf("failed to create UserDriver: %s\n", err)
+		os.Exit(2)
+	}
+	userDriver.ServeUsers(ctx, ":8000")
 }

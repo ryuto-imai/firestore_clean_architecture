@@ -3,32 +3,28 @@ package drivers
 import (
 	"context"
 	"firestore_clean/adapters/controllers"
-	"firestore_clean/adapters/gateways"
-	"firestore_clean/adapters/presenters"
-	"firestore_clean/drivers/database"
-	"firestore_clean/usecases/interactors"
-	"log"
 
 	"github.com/labstack/echo/v4"
 )
 
-func ServeUsers(address string) {
-	ctx := context.Background()
-	client, err := database.GetCllient(ctx)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+type User interface {
+	ServeUsers(ctx context.Context, address string)
+}
 
-	user := controllers.UserController{
-		OutputFactory:     presenters.NewUserOutputPort,
-		InputFactory:      interactors.NewUserInputPort,
-		RepositoryFactory: gateways.NewUserRepository,
-		Client:            client,
-	}
+type UserDriver struct {
+	echo       *echo.Echo
+	controller controllers.User
+}
 
-	e := echo.New()
-	e.POST("/users", user.AddUser)
-	e.GET("/users", user.GetUsers)
-	e.Logger.Fatal(e.Start(address))
+func NewUserDriver(echo *echo.Echo, controller controllers.User) User {
+	return &UserDriver{
+		echo:       echo,
+		controller: controller,
+	}
+}
+
+func (driver *UserDriver) ServeUsers(ctx context.Context, address string) {
+	driver.echo.POST("/users", driver.controller.AddUser(ctx))
+	driver.echo.GET("/users", driver.controller.GetUsers(ctx))
+	driver.echo.Logger.Fatal(driver.echo.Start(address))
 }
