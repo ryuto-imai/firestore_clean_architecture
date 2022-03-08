@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"firestore_clean/database"
+	"firestore_clean/adapters/gateways"
 	"firestore_clean/entities"
 	"firestore_clean/usecases/ports"
 
@@ -16,16 +16,16 @@ type User interface {
 
 type OutputFactory func(echo.Context) ports.UserOutputPort
 type InputFactory func(ports.UserOutputPort, ports.UserRepository) ports.UserInputPort
-type RepositoryFactory func(database.FirestoreClientFactory) ports.UserRepository
+type RepositoryFactory func(gateways.FirestoreClientFactory) ports.UserRepository
 
 type UserController struct {
 	outputFactory     OutputFactory
 	inputFactory      InputFactory
 	repositoryFactory RepositoryFactory
-	clientFactory     database.FirestoreClientFactory
+	clientFactory     gateways.FirestoreClientFactory
 }
 
-func NewUserController(outputFactory OutputFactory, inputFactory InputFactory, repositoryFactory RepositoryFactory, clientFactory database.FirestoreClientFactory) User {
+func NewUserController(outputFactory OutputFactory, inputFactory InputFactory, repositoryFactory RepositoryFactory, clientFactory gateways.FirestoreClientFactory) User {
 	return &UserController{
 		outputFactory:     outputFactory,
 		inputFactory:      inputFactory,

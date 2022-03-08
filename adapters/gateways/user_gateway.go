@@ -4,17 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"firestore_clean/database"
 	"firestore_clean/entities"
 	"firestore_clean/usecases/ports"
 	"fmt"
+
+	"cloud.google.com/go/firestore"
 )
 
-type UserGateway struct {
-	clientFactory database.FirestoreClientFactory
+type FirestoreClientFactory interface {
+	NewClient(ctx context.Context) (*firestore.Client, error)
 }
 
-func NewUserRepository(clientFactory database.FirestoreClientFactory) ports.UserRepository {
+type UserGateway struct {
+	clientFactory FirestoreClientFactory
+}
+
+func NewUserRepository(clientFactory FirestoreClientFactory) ports.UserRepository {
 	return &UserGateway{
 		clientFactory: clientFactory,
 	}

@@ -31,7 +31,7 @@ func InitializeUserDriver(ctx context.Context) (User, error) {
 
 // wire.go:
 
-func NewFirestoreClientFactory() database.FirestoreClientFactory {
+func NewFirestoreClientFactory() gateways.FirestoreClientFactory {
 	return &database.MyFirestoreClientFactory{}
 }
 

@@ -8,10 +8,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-type FirestoreClientFactory interface {
-	NewClient(ctx context.Context) (*firestore.Client, error)
-}
-
 type MyFirestoreClientFactory struct{}
 
 func (f *MyFirestoreClientFactory) NewClient(ctx context.Context) (*firestore.Client, error) {
