@@ -11,7 +11,7 @@ import (
 	"firestore_clean/adapters/controllers"
 	"firestore_clean/adapters/gateways"
 	"firestore_clean/adapters/presenters"
-	"firestore_clean/drivers/database"
+	"firestore_clean/database"
 	"firestore_clean/usecases/interactors"
 	"github.com/labstack/echo/v4"
 )
@@ -23,16 +23,17 @@ func InitializeUserDriver(ctx context.Context) (User, error) {
 	outputFactory := NewOutputFactory()
 	inputFactory := NewInputFactory()
 	repositoryFactory := NewRepositoryFactory()
-	client, err := database.NewCllient(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user := controllers.NewUserController(outputFactory, inputFactory, repositoryFactory, client)
+	firestoreClientFactory := NewFirestoreClientFactory()
+	user := controllers.NewUserController(outputFactory, inputFactory, repositoryFactory, firestoreClientFactory)
 	driversUser := NewUserDriver(echoEcho, user)
 	return driversUser, nil
 }
 
 // wire.go:
+
+func NewFirestoreClientFactory() database.FirestoreClientFactory {
+	return &database.MyFirestoreClientFactory{}
+}
 
 func NewOutputFactory() controllers.OutputFactory {
 	return presenters.NewUserOutputPort

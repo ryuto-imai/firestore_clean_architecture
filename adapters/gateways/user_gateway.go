@@ -4,20 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"firestore_clean/database"
 	"firestore_clean/entities"
 	"firestore_clean/usecases/ports"
 	"fmt"
-
-	"cloud.google.com/go/firestore"
 )
 
 type UserGateway struct {
-	client *firestore.Client
+	clientFactory database.FirestoreClientFactory
 }
 
-func NewUserRepository(client *firestore.Client) ports.UserRepository {
+func NewUserRepository(clientFactory database.FirestoreClientFactory) ports.UserRepository {
 	return &UserGateway{
-		client: client,
+		clientFactory: clientFactory,
 	}
 }
 
@@ -26,7 +25,13 @@ func (gateway *UserGateway) AddUser(ctx context.Context, user *entities.User) ([
 		return nil, errors.New("user is nil")
 	}
 
-	_, err := gateway.client.Collection("users").Doc(user.Name).Set(ctx, map[string]interface{}{
+	client, err := gateway.clientFactory.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed AddUser NewClient: %v", err)
+	}
+	defer client.Close()
+
+	_, err = client.Collection("users").Doc(user.Name).Set(ctx, map[string]interface{}{
 		"age":     user.Age,
 		"address": user.Address,
 	})
@@ -39,7 +44,13 @@ func (gateway *UserGateway) AddUser(ctx context.Context, user *entities.User) ([
 }
 
 func (gateway *UserGateway) GetUsers(ctx context.Context) ([]*entities.User, error) {
-	allData := gateway.client.Collection("users").Documents(ctx)
+	client, err := gateway.clientFactory.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetUsers NewClient: %v", err)
+	}
+	defer client.Close()
+
+	allData := client.Collection("users").Documents(ctx)
 
 	docs, err := allData.GetAll()
 	if err != nil {

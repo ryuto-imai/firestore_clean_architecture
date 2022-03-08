@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"context"
+	"firestore_clean/database"
 	"firestore_clean/entities"
 	"firestore_clean/usecases/ports"
 
-	"cloud.google.com/go/firestore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,21 +16,21 @@ type User interface {
 
 type OutputFactory func(echo.Context) ports.UserOutputPort
 type InputFactory func(ports.UserOutputPort, ports.UserRepository) ports.UserInputPort
-type RepositoryFactory func(*firestore.Client) ports.UserRepository
+type RepositoryFactory func(database.FirestoreClientFactory) ports.UserRepository
 
 type UserController struct {
 	outputFactory     OutputFactory
 	inputFactory      InputFactory
 	repositoryFactory RepositoryFactory
-	client            *firestore.Client
+	clientFactory     database.FirestoreClientFactory
 }
 
-func NewUserController(outputFactory OutputFactory, inputFactory InputFactory, repositoryFactory RepositoryFactory, client *firestore.Client) User {
+func NewUserController(outputFactory OutputFactory, inputFactory InputFactory, repositoryFactory RepositoryFactory, clientFactory database.FirestoreClientFactory) User {
 	return &UserController{
 		outputFactory:     outputFactory,
 		inputFactory:      inputFactory,
 		repositoryFactory: repositoryFactory,
-		client:            client,
+		clientFactory:     clientFactory,
 	}
 }
 
@@ -53,6 +53,6 @@ func (u *UserController) GetUsers(ctx context.Context) func(c echo.Context) erro
 
 func (u *UserController) newInputPort(c echo.Context) ports.UserInputPort {
 	outputPort := u.outputFactory(c)
-	repository := u.repositoryFactory(u.client)
+	repository := u.repositoryFactory(u.clientFactory)
 	return u.inputFactory(outputPort, repository)
 }

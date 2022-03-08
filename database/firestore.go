@@ -8,7 +8,13 @@ import (
 	"google.golang.org/api/option"
 )
 
-func NewCllient(ctx context.Context) (*firestore.Client, error) {
+type FirestoreClientFactory interface {
+	NewClient(ctx context.Context) (*firestore.Client, error)
+}
+
+type MyFirestoreClientFactory struct{}
+
+func (f *MyFirestoreClientFactory) NewClient(ctx context.Context) (*firestore.Client, error) {
 	sa := option.WithCredentialsFile("atomic-key-339415-1d169f4a8048.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {

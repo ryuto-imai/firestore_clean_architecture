@@ -8,7 +8,7 @@ import (
 	"firestore_clean/adapters/controllers"
 	"firestore_clean/adapters/gateways"
 	"firestore_clean/adapters/presenters"
-	"firestore_clean/drivers/database"
+	"firestore_clean/database"
 	"firestore_clean/usecases/interactors"
 
 	"github.com/google/wire"
@@ -16,8 +16,12 @@ import (
 )
 
 func InitializeUserDriver(ctx context.Context) (User, error) {
-	wire.Build(database.NewCllient, echo.New, NewOutputFactory, NewInputFactory, NewRepositoryFactory, controllers.NewUserController, NewUserDriver)
+	wire.Build(NewFirestoreClientFactory, echo.New, NewOutputFactory, NewInputFactory, NewRepositoryFactory, controllers.NewUserController, NewUserDriver)
 	return &UserDriver{}, nil
+}
+
+func NewFirestoreClientFactory() database.FirestoreClientFactory {
+	return &database.MyFirestoreClientFactory{}
 }
 
 func NewOutputFactory() controllers.OutputFactory {
