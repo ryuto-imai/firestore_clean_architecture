@@ -3,7 +3,7 @@ firestore + echo + wire + clean architecture をGoで作ってみました
 
 ## 起動手順
 
-1. firestoreからCredentialsFileを取得し、firestore_clean_architectureフォルダ直下に配置
+1. [firestoreからCredentialsFileを取得](https://firebase.google.com/docs/firestore/quickstart?hl=ja)し、firestore_clean_architectureフォルダ直下に配置
 
 2. [こちらのコード部分](https://github.com/ryuto-imai/firestore_clean_architecture/blob/2bb8ce9f2c63de342ddd5a9efbdb4de3f460c909/drivers/database/firestore.go#L12)を上記で取得したファイル名に差し替え
 
