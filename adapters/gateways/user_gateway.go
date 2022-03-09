@@ -45,7 +45,7 @@ func (gateway *UserGateway) AddUser(ctx context.Context, user *entities.User) ([
 		return nil, fmt.Errorf("failed AddUser Set: %v", err)
 	}
 
-	return gateway.GetUsers(ctx)
+	return getUsers(ctx, client)
 }
 
 func (gateway *UserGateway) GetUsers(ctx context.Context) ([]*entities.User, error) {
@@ -55,6 +55,10 @@ func (gateway *UserGateway) GetUsers(ctx context.Context) ([]*entities.User, err
 	}
 	defer client.Close()
 
+	return getUsers(ctx, client)
+}
+
+func getUsers(ctx context.Context, client *firestore.Client) ([]*entities.User, error) {
 	allData := client.Collection("users").Documents(ctx)
 
 	docs, err := allData.GetAll()
