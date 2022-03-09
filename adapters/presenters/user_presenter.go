@@ -25,5 +25,5 @@ func (u *UserPresenter) OutputUsers(users []*entities.User) error {
 
 func (u *UserPresenter) OutputError(err error) error {
 	log.Fatal(err)
-	return u.ctx.JSON(http.StatusInternalServerError, err)
+	return err
 }
